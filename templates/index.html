@@ -7,9 +7,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+        <h1>AI Drawing Guesser</h1>
     <div id="container">
         <canvas id="drawing-canvas" width="400" height="400"></canvas>
         <div id="guesses">
+            <ul id="title-list">
+            _____________AI Guesses_____________⠀⠀ ⠀
+            </ul>
             <ul id="guess-list">
                 <!-- AI guesses will be populated here -->
             </ul>
@@ -17,7 +21,7 @@
     </div>
     <div id="instructions">
         <p>Left mouse: Draw | Right mouse: Erase | C: Clear</p>
-        <input type="text" id="label-input" placeholder="Enter label here">
+        <input type="text" id="label-input" placeholder="pls help us train our AI">
         <button id="train-button">Send</button>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>

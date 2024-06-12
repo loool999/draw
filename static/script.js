@@ -49,7 +49,7 @@ trainButton.addEventListener('click', () => {
     if (label) {
         sendDrawing(label);
     } else {
-        alert("Please say what your drawing is.");
+        alert("Please enter a label.");
     }
 });
 
@@ -66,19 +66,33 @@ function sendDrawing(label = null) {
     .then(response => response.json())
     .then(data => {
         if (label) {
-            alert("Training complete.");
-        } else {
-            guessList.innerHTML = '';
-            data.guesses.forEach(guess => {
-                const li = document.createElement('li');
-                li.textContent = `${guess.label}`;
-                const span = document.createElement('span');
-                span.textContent = `${guess.confidence.toFixed(2)}%`;
-                li.appendChild(span);
-                guessList.appendChild(li);
+            fetch('/check_word', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ word: label }),
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.exists) {
+                    alert("No");
+                } else {
+                    alert("Training complete.");
+                }
             });
-        }
-    });
+            } else {
+                guessList.innerHTML = '';
+                data.guesses.forEach(guess => {
+                    const li = document.createElement('li');
+                    li.textContent = `${guess.label}`;
+                    const span = document.createElement('span');
+                    span.textContent = `${guess.confidence.toFixed(4)}%`;
+                    li.appendChild(span);
+                    guessList.appendChild(li);
+                });
+            }
+        });
 }
 labelInput.addEventListener('keydown', (e) => {
     if (e.key === 'c') {
