@@ -15,13 +15,13 @@ import matplotlib.pyplot as plt
 app = Flask(__name__)
 CORS(app)
 
-# Setup logging
+# logging
 logging.basicConfig(level=logging.CRITICAL)
 
-# Define the folder for saving
+# Defineing folder
 TRAINING_DATA_FOLDER = 'training_data'
 PLOTS_FOLDER = 'plots'
-BAD_WORDS_FILE = 'bad words.txt'  # Define the name of your text file
+BAD_WORDS_FILE = 'bad words.txt'
 
 # Ensure the folders exist
 os.makedirs(TRAINING_DATA_FOLDER, exist_ok=True)
@@ -31,7 +31,7 @@ os.makedirs(PLOTS_FOLDER, exist_ok=True)
 with open(BAD_WORDS_FILE, 'r') as f:
     bad_words = [line.strip() for line in f]
 
-# Define a simple neural network
+# simple neural network
 class SimpleNN(nn.Module):
     def __init__(self, output_size):
         super(SimpleNN, self).__init__()
@@ -52,7 +52,6 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 def load_training_data():
-    """Load training data from the training_data folder."""
     global labels, model, optimizer
     
     images = []
@@ -73,7 +72,6 @@ def load_training_data():
     return None, None
 
 def retrain_model():
-    """Retrain the model with the current training data."""
     images, targets = load_training_data()
     if images is None or targets is None:
         logging.warning("No training data available for retraining.")
@@ -99,8 +97,6 @@ def retrain_model():
             epoch_loss += loss.item()
         training_losses.append(epoch_loss / len(dataloader))
         logging.info(f"Epoch {epoch+1}, Loss: {training_losses[-1]}")
-    
-    # Plot and save the training loss graph
     plt.figure()
     plt.plot(range(1, len(training_losses) + 1), training_losses, marker='o')
     plt.title('Training Loss')
@@ -120,9 +116,9 @@ def check_word():
     data = request.json
     word = data['word']
     if any(bad_word in word.lower() for bad_word in bad_words):
-        return jsonify({'exists': True})  # Return a JSON response
+        return jsonify({'exists': True})
     else:
-        return jsonify({'exists': False})  # Return a JSON response
+        return jsonify({'exists': False})
 
 def index():
     return render_template('index.html')
@@ -143,7 +139,6 @@ def predict():
         confidences = torch.softmax(outputs, dim=1).numpy().flatten()
 
     predictions = sorted(zip(labels, confidences), key=lambda x: x[1], reverse=True)[:13]
-    #print first prediction
     print(predictions[0])
 
     return jsonify({'guesses': [{'label': label, 'confidence': conf * 100} for label, conf in predictions]})
@@ -177,11 +172,11 @@ def train():
         os.makedirs(label_folder)
         labels.append(label)
         labels.sort()
-        model = SimpleNN(len(labels))  # Update model to reflect new number of classes
-        criterion = nn.CrossEntropyLoss()  # Reinitialize criterion
-        optimizer = optim.Adam(model.parameters(), lr=0.001)  # Reinitialize optimizer
+        model = SimpleNN(len(labels))
+        criterion = nn.CrossEntropyLoss()  
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
     
-    # Save the image with a unique name
+    # Saving the image
     image_path = os.path.join(label_folder, f"{label}_{len(os.listdir(label_folder))}.png")
     image.save(image_path)
     
@@ -198,19 +193,17 @@ def train():
     
     logging.debug("Training complete")
 
-    retrain_model()  # Retrain the model after adding a new image
+    retrain_model()
 
     return jsonify({'status': 'training complete'})
 
 @app.route('/retrain', methods=['POST'])
 def retrain():
-    """Endpoint to manually trigger retraining."""
     retrain_model()
     return jsonify({'status': 'retraining complete'})
 
 @app.route('/plot')
 def plot():
-    """Endpoint to serve the training loss plot."""
     plot_path = os.path.join(PLOTS_FOLDER, 'training_loss.png')
     if os.path.exists(plot_path):
         return send_file(plot_path, mimetype='image/png')
@@ -218,7 +211,6 @@ def plot():
         return jsonify({'error': 'Plot not found'}), 404
 
 if __name__ == '__main__':
-    # Load existing training data and retrain model at startup
     port = '8000'
     retrain_model()
     app.run(debug=True)
